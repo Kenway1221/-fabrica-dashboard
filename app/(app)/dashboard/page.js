@@ -19,8 +19,10 @@ export default async function Dashboard() {
 
   const pedMes = pedidos.filter((x) => x.data_entrega >= ini && x.data_entrega <= fim)
   const faturamento = soma(pedMes, (x) => x.quantidade * x.valor_unitario)
+  const lucroMes = soma(pedMes, (x) => x.quantidade * (x.lucro_unitario || 0))
   const ticket = pedMes.length ? faturamento / pedMes.length : 0
-  const emProducao = soma(pedidos.filter((x) => x.status !== 'entregue'), (x) => x.quantidade)
+  const emProducao = soma(pedidos.filter((x) => x.status !== 'entregue' && x.status !== 'cancelado'), (x) => x.quantidade)
+  
   const cortMes = soma(prod.filter((x) => x.data >= ini && x.data <= fim), (x) => x.quantidade_cortada)
   const cortAnt = soma(prod.filter((x) => x.data >= iniAnt && x.data <= fimAnt), (x) => x.quantidade_cortada)
   const cresc = cortAnt > 0 ? ((cortMes - cortAnt) / cortAnt) * 100 : null
@@ -36,6 +38,7 @@ export default async function Dashboard() {
 
   const stats = [
     { t: 'Faturamento do Mês', v: brl(faturamento), Icon: DollarSign },
+    { t: 'Lucro do Mês', v: brl(lucroMes), Icon: DollarSign },
     { t: 'Total de Pedidos', v: pedMes.length, Icon: ShoppingBag },
     { t: 'Ticket Médio', v: brl(ticket), Icon: Receipt },
     { t: 'Peças em Produção', v: emProducao.toLocaleString('pt-BR'), Icon: Factory, cresc },
