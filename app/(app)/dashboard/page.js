@@ -114,16 +114,7 @@ export default async function Dashboard() {
           <p className="mt-3 text-center text-2xl font-bold text-green-600">{margem.toFixed(1)}% margem</p>
           <p className="text-center text-sm text-gray-500">Baseado em lucro_unitário x quantidade</p>
         </div>
-        <div className={card + ' bg-gray-50'}>
-          <h2 className="font-semibold mb-3">Como calcular</h2>
-          <div className="text-sm space-y-2 text-gray-600">
-            <p><b>Fórmula Shopee:</b></p>
-            <code className="block bg-white p-2 rounded text-xs">Lucro = Preço - Custo - (Preço*0.20) - 4 - (Ads/Peças)</code>
-            <p>Com seu custo R$13:</p>
-            <p>Preço R$28 - R$13 - R$5,60 - R$4 - R$2,73 = <b className="text-green-600">R$2,67/peça</b></p>
-            <p className="pt-2">Edite o pedido e coloque 2.67 no campo lucro_unitario.</p>
-          </div>
-        </div>
+       
       </div>
 
       <div className={card}>
