@@ -4,7 +4,7 @@ import { Plus, Save, Trash2, Pencil, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { CLIENTES, MODELOS, STATUS_PEDIDO, STATUS_COR, brl, fmtData, iso, card, inp, btn } from '@/lib/constants'
 
-const vazio = () => ({ cliente: '', modelo: '', quantidade: '', valor_unitario: '', data_entrega: iso(new Date()), status: 'a_enfestar' })
+const vazio = () => ({ cliente: '', modelo: '', quantidade: '', valor_unitario: '', lucro_unitario: '', data_entrega: iso(new Date()), status: 'a_enfestar' })
 
 export default function Pedidos() {
   const sb = createClient()
@@ -27,14 +27,19 @@ export default function Pedidos() {
 
   async function salvar(e) {
     e.preventDefault(); setErro('')
-    const dados = { ...f, quantidade: +f.quantidade || 0, valor_unitario: +f.valor_unitario || 0 }
+    const dados = { 
+      ...f, 
+      quantidade: parseFloat(f.quantidade) || 0, 
+      valor_unitario: parseFloat(f.valor_unitario) || 0,
+      lucro_unitario: parseFloat(f.lucro_unitario) || 0 
+    }
     const { error } = editId ? await sb.from('pedidos').update(dados).eq('id', editId) : await sb.from('pedidos').insert(dados)
     if (error) return setErro(error.message)
     cancelar(); carregar()
   }
   function editar(p) {
     setEditId(p.id)
-    setF({ cliente: p.cliente, modelo: p.modelo, quantidade: p.quantidade, valor_unitario: p.valor_unitario, data_entrega: p.data_entrega, status: p.status })
+    setF({ cliente: p.cliente, modelo: p.modelo, quantidade: p.quantidade, valor_unitario: p.valor_unitario, lucro_unitario: p.lucro_unitario || '', data_entrega: p.data_entrega, status: p.status })
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
   function cancelar() { setEditId(null); setF(vazio()) }
@@ -49,6 +54,7 @@ export default function Pedidos() {
         <label className="text-sm">Modelo<input required list="modelos" className={inp} value={f.modelo} onChange={set('modelo')} /></label>
         <label className="text-sm">Quantidade<input type="number" min="1" required className={inp} value={f.quantidade} onChange={set('quantidade')} /></label>
         <label className="text-sm">Valor por peça (R$)<input type="number" min="0" step="0.01" className={inp} value={f.valor_unitario} onChange={set('valor_unitario')} /></label>
+        <label className="text-sm">Lucro por peça (R$)<input type="number" min="0" step="0.01" placeholder="Ex: 2.50" className={inp} value={f.lucro_unitario} onChange={set('lucro_unitario')} /></label>
         <label className="text-sm">Data de entrega<input type="date" required className={inp} value={f.data_entrega} onChange={set('data_entrega')} /></label>
         <label className="text-sm">Status
           <select className={inp} value={f.status} onChange={set('status')}>{Object.entries(STATUS_PEDIDO).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
@@ -69,15 +75,16 @@ export default function Pedidos() {
           {(de || ate) && <button onClick={() => { setDe(''); setAte('') }} className="text-sm text-gray-500 underline pb-2">Limpar filtro</button>}
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm min-w-[720px]">
+          <table className="w-full text-sm min-w-[800px]">
             <thead><tr className="text-left text-gray-500 border-b">
-              {['Entrega', 'Cliente', 'Modelo', 'Qtd.', 'Total', 'Status', ''].map((h) => <th key={h} className="py-2 pr-4 font-medium">{h}</th>)}
+              {['Entrega', 'Cliente', 'Modelo', 'Qtd.', 'Total', 'Lucro', 'Status', ''].map((h) => <th key={h} className="py-2 pr-4 font-medium">{h}</th>)}
             </tr></thead>
             <tbody>
               {lista.map((p) => (
                 <tr key={p.id} className="border-b last:border-0">
                   <td className="py-2 pr-4">{fmtData(p.data_entrega)}</td><td className="pr-4">{p.cliente}</td><td className="pr-4">{p.modelo}</td>
                   <td className="pr-4">{p.quantidade}</td><td className="pr-4">{brl(p.quantidade * p.valor_unitario)}</td>
+                  <td className="pr-4 text-brand font-medium">{brl(p.quantidade * (p.lucro_unitario || 0))}</td>
                   <td className="pr-4">
                     <select value={p.status} onChange={(e) => mudarStatus(p.id, e.target.value)}
                       className="rounded-full border-0 px-2 py-1 text-xs font-medium text-white" style={{ background: STATUS_COR[p.status] }}>
@@ -90,7 +97,7 @@ export default function Pedidos() {
                   </td>
                 </tr>
               ))}
-              {!lista.length && <tr><td colSpan={7} className="py-6 text-center text-gray-500">Nenhum pedido encontrado.</td></tr>}
+              {!lista.length && <tr><td colSpan={8} className="py-6 text-center text-gray-500">Nenhum pedido encontrado.</td></tr>}
             </tbody>
           </table>
         </div>
